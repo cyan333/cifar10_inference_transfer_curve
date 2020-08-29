@@ -70,10 +70,10 @@ def give_an_input_get_analog_output_dac(x, va_fit_param, va_bar_fit_param):
     return va, va_bar
 
 # testing
-Va_fit_param, Va_bar_fit_param = dac_param()
-print(Va_fit_param)
-va, va_bar = give_an_input_get_analog_output_dac(63, Va_fit_param, Va_bar_fit_param)
-print(str(va) + '  and  ' + str(va_bar))
+# Va_fit_param, Va_bar_fit_param = dac_param()
+# print(Va_fit_param)
+# va, va_bar = give_an_input_get_analog_output_dac(63, Va_fit_param, Va_bar_fit_param)
+# print(str(va) + '  and  ' + str(va_bar))
 
 
 
