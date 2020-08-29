@@ -5,30 +5,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 from numpy.polynomial.polynomial import polyfit
 
+def adc_param():
+    data = csv.reader(open('ADC_transfer.csv', newline=''), delimiter=',')
+    Vmav, Yout = [], []
+    for row in data:
+        # print(row)
+        Vmav.append(float(row[0]))
+        Yout.append(float(row[1]))
 
-data = csv.reader(open('ADC_transfer.csv', newline=''), delimiter=',')
-Vmav, Yout = [], []
-for row in data:
-    # print(row)
-    Vmav.append(float(row[0]))
-    Yout.append(float(row[1]))
+    # print(Vmav,Yout)
 
-print(Vmav,Yout)
+    x = np.linspace(0,1200, num=1000)
 
-x = np.linspace(0,1200, num=1000)
-def adc_param(Vmav, Yout):
     # get equation
     Yout_fit_param = polyfit(Vmav, Yout, 1)
     Yout_equation = Yout_fit_param[1]*x + Yout_fit_param[0]
 
-    plt.figure()
-    plt.xlabel('Vmav [V]')
-    plt.ylabel('Yout - Digital Output [DEC]')
-
-    #### Va Bar ####
-    plt.scatter(Vmav,Yout)
-    plt.plot(x,Yout_equation)
-    plt.show()
+    # plt.figure()
+    # plt.xlabel('Vmav [V]')
+    # plt.ylabel('Yout - Digital Output [DEC]')
+    #
+    # #### Va Bar ####
+    # plt.scatter(Vmav,Yout)
+    # plt.plot(x,Yout_equation)
+    # plt.show()
     return Yout_fit_param
 
 def give_vmav_get_yout(vmav, Yout_fit_param):
