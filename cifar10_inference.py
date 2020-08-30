@@ -8,11 +8,15 @@ from numpy.polynomial.polynomial import polyfit
 from DAC import dac_param, give_an_input_get_analog_output_dac
 from ADC import adc_param, give_vmav_get_yout
 from MAV import mav_transfer, give_weight_get_vmav
+from keras.utils import np_utils
 
+classes = 10
 
 #### DATA ####
+######################
 from data.cifar_test_xarray import X_test
-# print(X_test[0][0][0][0], 'test samples')
+print(X_test.shape, 'test samples')
+
 
 # Weight
 weight_data = []
@@ -30,23 +34,6 @@ weight_file.close()
 # x_test = np.random.randint(0,256,size=(3,32,32))
 # weight_data1 = np.random.randint(-126,126,size=(2,27))
 # print(weight_data1)
-
-# with open('input1.txt', 'w') as f:
-#     for x in range(x_test.shape[0]):
-#         f.write("\n")
-#         for y in range(x_test.shape[1]):
-#             f.write("\n")
-#             for z in range(x_test.shape[2]):
-#                 f.write("%s," % x_test[x][y][z])
-# with open('weight.txt', 'w') as f:
-#     for x in range(weight_data.shape[0]):
-#         f.write("\n")
-#         for y in range(weight_data.shape[1]):
-#             f.write("\n")
-#             for z in range(weight_data.shape[2]):
-#                 f.write("%s," % weight_data[x][y][z])
-
-
 
 
 def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param):
@@ -81,17 +68,15 @@ def conv1():
     yout_param = adc_param()
 
     partial_sum_counter = -1
-    partial_sum = []
-    next_layer_input = []
+    next_layer_input = np.zeros(shape=(32,30,30))
 
     # yout = cim_conv(180, 70)
 
     for this_filter in range(32):
         for this_many_y in range(next_layer_xy): # loop thru image y axis
-            next_layer_input.append([])
+            # next_layer_input.append([])
             for this_many_x in range(next_layer_xy): # loop thru image x axis
                 partial_sum_single = 0
-                partial_sum.append([])
                 for this_channel in range(channel): # internal loop within filter 3*3*3
                     for this_row in range(filter_size):
                         for this_col in range(filter_size):
@@ -108,7 +93,7 @@ def conv1():
                 # convert 27 into one average result
                 partial_sum_avg = partial_sum_single/dividor
                 # print('partial sum average ===== ' + str(partial_sum_avg))
-                next_layer_input[this_many_y + next_layer_xy*this_filter].append(partial_sum_avg)
+                next_layer_input[this_filter][this_many_y][this_many_x] = partial_sum_avg
                 # print('index = ' + str(this_many_y + next_layer_xy*this_filter))
 
     # with open('partial_sum.txt', 'w') as f:
@@ -117,10 +102,12 @@ def conv1():
 
     return next_layer_input
 
+
 # testing
 next_layer_input = conv1()
 print(next_layer_input)
-print('shape = ' + str(len(next_layer_input)) + ' , ' + str(len(next_layer_input[0])))
+print('shape = ' + str(next_layer_input.shape))
+# print('shape = ' + str(len(next_layer_input)) + ' , ' + str(len(next_layer_input[0])))
 
 
 
