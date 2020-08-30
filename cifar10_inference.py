@@ -21,8 +21,8 @@ with open('converted_weight_CONV1_dec.txt', 'r') as weight_file:
     for row in reader:
         row.pop()
         weight_data.append( [int(i) for i in row] )
-
 weight_file.close()
+
 # for i in range(0, len(weight_data)):
 #     weight_data[i] = int(weight_data[0][i])
 # print(weight_data[0][0])
@@ -47,86 +47,80 @@ weight_file.close()
 #                 f.write("%s," % weight_data[x][y][z])
 
 
-### Parameters ###
-channel = X_test.shape[1]
-filter_size = 3
-dividor = 27
-# next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
-next_layer_xy = 30
-
-# print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
-Va_fit_param, Va_bar_fit_param = dac_param()
-Va_vs_Vmav_param, Va_bar_vs_Vmav_param = mav_transfer()
-yout_param = adc_param()
 
 
 def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param):
     #### DAC ####
     # Va / Va_bar generation
-    print('Xin = ' + str(Xin))
+    # print('Xin = ' + str(Xin))
     va, va_bar = give_an_input_get_analog_output_dac(Xin, Va_fit_param, Va_bar_fit_param)
-    print('Va = ' + str(va))
-    print('Va_bar = ' + str(va_bar))
+    # print('Va = ' + str(va))
+    # print('Va_bar = ' + str(va_bar))
     va = va/1000
     va_bar = va_bar / 1000
     #### MAV ####
     vmav = give_weight_get_vmav(Win, 1.2-va, va_bar, Va_vs_Vmav_param, Va_bar_vs_Vmav_param)
-    print('Vmav = ' + str(vmav))
+    # print('Vmav = ' + str(vmav))
     #### ADC ####
     yout = int(give_vmav_get_yout(vmav*1000, yout_param))
-    print('Digital Output = ' + str(yout))
+    # print('Digital Output = ' + str(yout))
     return yout
 
 
-partial_sum_counter = -1
-partial_sum = []
-next_layer_input = []
+def conv1():
+    ### Parameters ###
+    channel = X_test.shape[1]
+    filter_size = 3
+    dividor = 27
+    # next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
+    next_layer_xy = 30
 
-# yout = cim_conv(180, 70)
+    # print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
+    Va_fit_param, Va_bar_fit_param = dac_param()
+    Va_vs_Vmav_param, Va_bar_vs_Vmav_param = mav_transfer()
+    yout_param = adc_param()
 
-# @jit(nopython=True)
-# def img_multiply_with_single_filter():
+    partial_sum_counter = -1
+    partial_sum = []
+    next_layer_input = []
 
+    # yout = cim_conv(180, 70)
 
-for this_filter in range(32):
-    for this_many_y in range(next_layer_xy): # loop thru image y axis
-        next_layer_input.append([])
-        for this_many_x in range(next_layer_xy): # loop thru image x axis
-            partial_sum_single = 0
-            partial_sum.append([])
-            for this_channel in range(channel): # internal loop within filter 3*3*3
-                for this_row in range(filter_size):
-                    for this_col in range(filter_size):
-                        # partial_sum[partial_sum_counter].append(
-                        #     cim_conv(x_test[this_channel][this_row + this_many_y][this_col + this_many_x],
-                        #              weight_data[this_filter][this_col + 3*this_row + 9*this_channel]))
+    for this_filter in range(32):
+        for this_many_y in range(next_layer_xy): # loop thru image y axis
+            next_layer_input.append([])
+            for this_many_x in range(next_layer_xy): # loop thru image x axis
+                partial_sum_single = 0
+                partial_sum.append([])
+                for this_channel in range(channel): # internal loop within filter 3*3*3
+                    for this_row in range(filter_size):
+                        for this_col in range(filter_size):
+                            # first index = which image
+                            partial_sum_single = partial_sum_single + cim_conv(
+                                X_test[0][this_channel][this_row + this_many_y][this_col + this_many_x],
+                                weight_data[this_filter][this_col + 3*this_row + 9*this_channel],
+                                Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param)
 
-                        # first index = which image
-                        partial_sum_single = partial_sum_single + cim_conv(
-                            X_test[0][this_channel][this_row + this_many_y][this_col + this_many_x],
-                            weight_data[this_filter][this_col + 3*this_row + 9*this_channel])
+                            # print('this_col = ' + str(this_col) + '  this_row = ' + str(this_row) + '  this_channel = ' + str(this_channel))
+                            # print('index === ' + str(this_col + 3*this_row + 9*this_channel))
+                            # print('weight data ====== ' + str(weight_data[this_filter][this_col + 3*this_row + 9*this_channel]))
 
-                        # print('this_col = ' + str(this_col) + '  this_row = ' + str(this_row) + '  this_channel = ' + str(this_channel))
-                        # print('index === ' + str(this_col + 3*this_row + 9*this_channel))
-                        # print('weight data ====== ' + str(weight_data[this_filter][this_col + 3*this_row + 9*this_channel]))
+                # convert 27 into one average result
+                partial_sum_avg = partial_sum_single/dividor
+                # print('partial sum average ===== ' + str(partial_sum_avg))
+                next_layer_input[this_many_y + next_layer_xy*this_filter].append(partial_sum_avg)
+                # print('index = ' + str(this_many_y + next_layer_xy*this_filter))
 
-            # convert 27 into one average result
-            print('partial sum = ' + partial_sum_single)
-            partial_sum_avg = partial_sum_single/dividor
-            print('partial sum average ===== ' + str(partial_sum_avg))
-            next_layer_input[this_many_y + next_layer_xy*this_filter].append(partial_sum_avg)
-            # print('index = ' + str(this_many_y + next_layer_xy*this_filter))
+    # with open('partial_sum.txt', 'w') as f:
+    #     for item in partial_sum:
+    #         f.write("%s\n" % item)
 
-# with open('partial_sum.txt', 'w') as f:
-#     for item in partial_sum:
-#         f.write("%s\n" % item)
+    return next_layer_input
 
+# testing
+next_layer_input = conv1()
 print(next_layer_input)
 print('shape = ' + str(len(next_layer_input)) + ' , ' + str(len(next_layer_input[0])))
-
-
-
-
 
 
 
