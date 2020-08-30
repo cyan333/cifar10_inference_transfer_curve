@@ -1,3 +1,4 @@
 
 data/cifar_test_xarray.py
 data/cifar_test_yarray.py
+*.pyc
