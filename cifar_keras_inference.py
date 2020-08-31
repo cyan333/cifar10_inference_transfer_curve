@@ -94,8 +94,8 @@ Y_test = np_utils.to_categorical(y_test, classes)
 X_test_padded = np.zeros(shape=(X_test.shape[0], X_test.shape[1], X_test.shape[2]+2, X_test.shape[3]+2))
 X_test_padded[:X_test.shape[0], :X_test.shape[1], 1:X_test.shape[2]+1, 1:X_test.shape[3]+1] = X_test
 # print(X_test_padded[0])
-print(X_test_padded[:1].shape, 'test samples')
-print(Y_test[:1].shape, 'test samples values')
+# print(X_test_padded[:1].shape, 'test samples')
+# print(Y_test[:1].shape, 'test samples values')
 
 X_test_small = X_test_padded[:10]
 Y_test_small = Y_test[:10]
@@ -374,6 +374,7 @@ def __main__():
     # print(X_test_small.shape, 'test samples', Y_test_small.shape, 'test_sample_value')
     # print('shape = ' + str(next_layer_input.shape))
 
+    # network_f(X_test_data=X_test[:1], Y_test_data=Y_test[:1])
 
 
 if __name__ == "__main__":

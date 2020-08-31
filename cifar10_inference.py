@@ -62,7 +62,7 @@ def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_
     # print('Vmav = ' + str(vmav))
     #### ADC ####
     yout = int(give_vmav_get_yout(vmav*1000, yout_param))
-    print('Digital Output = ' + str(yout))
+    # print('Digital Output = ' + str(yout))
     return yout
 
 
@@ -72,9 +72,9 @@ def conv(X_test_data, weight_data, multipler):
     filter_size = 3
     dividor = 27
     # next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
-    next_layer_xy = 2 # 32
-    number_of_img = 1 # X_test.shape[0]
-    number_of_filter = 1 # 32
+    next_layer_xy = 32 #2
+    number_of_img = X_test_data.shape[0] #1
+    number_of_filter = 32 #1
 
     # print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
     Va_fit_param, Va_bar_fit_param = dac_param()
@@ -95,24 +95,24 @@ def conv(X_test_data, weight_data, multipler):
                         for this_row in range(filter_size):
                             for this_col in range(filter_size):
                                 # first index = which image
-                                partial_sum_single = partial_sum_single \
-                                                     + X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x] \
-                                                     * weight_data[this_filter][this_col + 3*this_row + 9*this_channel]
+                                # partial_sum_single = partial_sum_single \
+                                #                      + X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x] \
+                                #                      * weight_data[this_filter][this_col + 3*this_row + 9*this_channel]
 
-                                # partial_sum_single = partial_sum_single + cim_conv(
-                                #     X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x],
-                                #     weight_data[this_filter][this_col + 3*this_row + 9*this_channel],
-                                #     Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param)
+                                partial_sum_single = partial_sum_single + cim_conv(
+                                    X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x],
+                                    weight_data[this_filter][this_col + 3*this_row + 9*this_channel],
+                                    Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param)
 
                                 # print('this_col = ' + str(this_col) + '  this_row = ' + str(this_row) + '  this_channel = ' + str(this_channel))
                                 # print('index === ' + str(this_col + 3*this_row + 9*this_channel))
                                 # print('weight data ====== ' + str(weight_data[this_filter][this_col + 3*this_row + 9*this_channel]))
 
                     # convert 27 into one average result
-                    print('partial sum === ', partial_sum_single)
+                    # print('partial sum === ', partial_sum_single)
 
                     partial_sum_avg = partial_sum_single/(channel*filter_size*filter_size)
-                    print('partial sum avg === ', partial_sum_avg)
+                    # print('partial sum avg === ', partial_sum_avg)
                     # print('partial sum ============ ', partial_sum_single)
                     # print('partial sum avg ==== ', partial_sum_avg)
                     # if partial_sum_avg<127: # RELU
@@ -125,7 +125,7 @@ def conv(X_test_data, weight_data, multipler):
     return next_layer_input
 
 # testing
-next_layer_input = conv(X_test_padded, weight_data_conv1, 1)
+# next_layer_input = conv(X_test_padded, weight_data_conv1, 1)
 
 # with open('partial_sum.txt','w') as file:
 #     for channel in next_layer_input:
@@ -136,8 +136,8 @@ next_layer_input = conv(X_test_padded, weight_data_conv1, 1)
 #             file.write('\n')
 # file.close()
 
-print(next_layer_input)
-print('shape = ' + str(next_layer_input.shape))
+# print(next_layer_input)
+# print('shape = ' + str(next_layer_input.shape))
 #
 # # padding for conv2
 # next_layer_input_padding = np.zeros(shape=(next_layer_input.shape[0], next_layer_input.shape[1], next_layer_input.shape[2]+2, next_layer_input.shape[3]+2))
