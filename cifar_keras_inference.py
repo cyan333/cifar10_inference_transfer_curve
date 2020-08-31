@@ -91,9 +91,11 @@ from data.cifar_test_xarray import X_test
 
 Y_test = np_utils.to_categorical(y_test, classes)
 
-print(X_test.shape, 'test samples')
-print(Y_test.shape, 'test samples values')
+print(X_test[:1].shape, 'test samples')
+print(Y_test[:1].shape, 'test samples values')
 
+X_test_small = X_test[:1]
+Y_test_small = Y_test[:1]
 
 # Weight
 weight_data = []
@@ -113,7 +115,7 @@ weight_file.close()
 # print(weight_data1)
 
 
-def network(X_test_data, Y_test_data):
+def network(X_test_data, Y_test_data, input_shape):
     layers_array = ["scaling1", "scaling2", 'scaling3', 'scaling4']
     with open('max_dict.csv', mode='r') as infile:
         reader = csv.reader(infile, delimiter=',')
@@ -129,36 +131,36 @@ def network(X_test_data, Y_test_data):
 
     factor = 0
 
-    clip1_min = -627 + (627 * factor[i])
-    clip1_max = 650 - (650 * factor[i])
+    clip1_min = -627 + (627 * factor)
+    clip1_max = 650 - (650 * factor)
 
-    clip2_min = -1692 + (1692 * factor[i])
-    clip2_max = 770 - (770 * factor[i])
+    clip2_min = -1692 + (1692 * factor)
+    clip2_max = 770 - (770 * factor)
 
-    clip3_min = -2111 + (2111 * factor[i])
-    clip3_max = 2870 - (2870 * factor[i])
+    clip3_min = -2111 + (2111 * factor)
+    clip3_max = 2870 - (2870 * factor)
 
-    clip4_min = -4686 + (4686 * factor[i])
-    clip4_max = 1613 - (1613 * factor[i])
+    clip4_min = -4686 + (4686 * factor)
+    clip4_max = 1613 - (1613 * factor)
 
     model = Sequential()
 
     # Conv1, Scaling1 and ReLU1
-    model.add(Conv2D(32, kernel_size=(3, 3), input_shape=(channels, img_rows, img_cols), data_format='channels_first',
-                     kernel_initializer='he_normal', padding='same', use_bias=use_bias, name='conv1'))
-    model.add(Lambda(lambda x: floor_func(x, conv_scale[0]),
-                     name='scaling1'))  ## Dividing by 27 (MAV) and 18.296 (Instead of 128), so need to multiply by factor of 7 in gain stage
-    model.add(Lambda(lambda x: K.clip(x, clip1_min, clip1_max), name='clip1'))
-    model.add(Activation(relu_layer, name='act_conv1'))
-
-    # Conv2, Scaling2 and ReLU2
-    model.add(
-        Conv2D(32, kernel_size=(3, 3), data_format='channels_first', kernel_initializer='he_normal', padding='same',
-               use_bias=use_bias, name='conv2'))
-    model.add(Lambda(lambda x: floor_func(x, conv_scale[1]),
-                     name='scaling2'))  ## Dividing by 288 (MAV) and 1 (Instead of 128), so need to multiply by factor of 128 in gain stage
-    model.add(Lambda(lambda x: K.clip(x, clip2_min, clip2_max), name='clip2'))
-    model.add(Activation(relu_layer, name='act_conv2'))
+    # model.add(Conv2D(32, kernel_size=(3, 3), input_shape=(channels, img_rows, img_cols), data_format='channels_first',
+    #                  kernel_initializer='he_normal', padding='same', use_bias=use_bias, name='conv1'))
+    # model.add(Lambda(lambda x: floor_func(x, conv_scale[0]),
+    #                  name='scaling1'))  ## Dividing by 27 (MAV) and 18.296 (Instead of 128), so need to multiply by factor of 7 in gain stage
+    # model.add(Lambda(lambda x: K.clip(x, clip1_min, clip1_max), name='clip1'))
+    # model.add(Activation(relu_layer, name='act_conv1'))
+    #
+    # # Conv2, Scaling2 and ReLU2
+    # model.add(
+    #     Conv2D(32, kernel_size=(3, 3), data_format='channels_first', kernel_initializer='he_normal', padding='same',
+    #            use_bias=use_bias, name='conv2'))
+    # model.add(Lambda(lambda x: floor_func(x, conv_scale[1]),
+    #                  name='scaling2'))  ## Dividing by 288 (MAV) and 1 (Instead of 128), so need to multiply by factor of 128 in gain stage
+    # model.add(Lambda(lambda x: K.clip(x, clip2_min, clip2_max), name='clip2'))
+    model.add(Activation(relu_layer, name='act_conv2', input_shape=(32,32,32)))
 
     # Pool1
     model.add(MaxPooling2D(pool_size=(2, 2), name='pool1', data_format='channels_first'))
@@ -203,6 +205,7 @@ def network(X_test_data, Y_test_data):
     opt = RMSprop(lr=0.0001, decay=1e-6)
     model.compile(loss='squared_hinge', optimizer=opt, metrics=['accuracy', 'top_k_categorical_accuracy'])
     # model.compile('adam', 'categorical_crossentropy', ['accuracy', 'top_k_categorical_accuracy'])
+    model.build(input_shape)
     model.summary()
 
     model.load_weights(weight_hdf5, by_name=True)
@@ -226,10 +229,14 @@ def network(X_test_data, Y_test_data):
 
 # testing
 def __main__():
-    next_layer_input = conv1(X_test, weight_data)
+    # print('nothing here')
+    # next_layer_input = conv1(X_test_small, weight_data)
     # print(next_layer_input)
-    print('shape = ' + str(next_layer_input.shape))
-    network(X_test_data=next_layer_input, Y_test_data=Y_test)
+    # print('shape = ' + str(next_layer_input.shape))
+    network(X_test_data=np.zeros(shape=(1,32,32,32)), Y_test_data=Y_test_small, input_shape=X_test_small.shape)
+    # print(X_test_small.shape, 'test samples', Y_test_small.shape, 'test_sample_value')
+    # print('shape = ' + str(next_layer_input.shape))
+
 
 
 if __name__ == "__main__":

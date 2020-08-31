@@ -62,17 +62,18 @@ def conv1(X_test, weight_data):
     # next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
     next_layer_xy = 30
     number_of_img = X_test.shape[0]
+    number_of_filter = 32
     # print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
     Va_fit_param, Va_bar_fit_param = dac_param()
     Va_vs_Vmav_param, Va_bar_vs_Vmav_param = mav_transfer()
     yout_param = adc_param()
 
     partial_sum_counter = -1
-    next_layer_input = np.zeros(shape=(number_of_img,32,30,30))
+    next_layer_input = np.zeros(shape=(number_of_img,number_of_filter,30,30))
 
     # yout = cim_conv(180, 70)
     for this_img in range(number_of_img):
-        for this_filter in range(32):
+        for this_filter in range(number_of_filter):
             for this_many_y in range(next_layer_xy): # loop thru image y axis
                 # next_layer_input.append([])
                 for this_many_x in range(next_layer_xy): # loop thru image x axis
