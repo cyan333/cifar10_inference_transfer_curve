@@ -74,7 +74,7 @@ def conv(X_test, weight_data, multipler):
     dividor = 27
     # next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
     next_layer_xy = 32
-    number_of_img = 1 #X_test.shape[0]
+    number_of_img = X_test.shape[0]
     number_of_filter = 32
 
     # print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
@@ -170,20 +170,20 @@ def conv(X_test, weight_data, multipler):
 
 
 # testing
-next_layer_input = conv(X_test_padded, weight_data_conv1, 32)
-print(next_layer_input)
-print('shape = ' + str(next_layer_input.shape))
-
-# padding for conv2
-next_layer_input_padding = np.zeros(shape=(next_layer_input.shape[0], next_layer_input.shape[1], next_layer_input.shape[2]+2, next_layer_input.shape[3]+2))
-next_layer_input_padding[:next_layer_input.shape[0], :next_layer_input.shape[1], 1:next_layer_input.shape[2]+1, 1:next_layer_input.shape[3]+1] = next_layer_input
-
-# print(next_layer_input_padding)
-print(next_layer_input_padding.shape)
-
-next_layer_input_con2 = conv(next_layer_input_padding, weight_data_conv2, 64)
-print(next_layer_input_con2)
-print('shape = ' + str(next_layer_input_con2.shape))
+# next_layer_input = conv(X_test_padded, weight_data_conv1, 32)
+# print(next_layer_input)
+# print('shape = ' + str(next_layer_input.shape))
+#
+# # padding for conv2
+# next_layer_input_padding = np.zeros(shape=(next_layer_input.shape[0], next_layer_input.shape[1], next_layer_input.shape[2]+2, next_layer_input.shape[3]+2))
+# next_layer_input_padding[:next_layer_input.shape[0], :next_layer_input.shape[1], 1:next_layer_input.shape[2]+1, 1:next_layer_input.shape[3]+1] = next_layer_input
+#
+# # print(next_layer_input_padding)
+# print(next_layer_input_padding.shape)
+#
+# next_layer_input_con2 = conv(next_layer_input_padding, weight_data_conv2, 64)
+# print(next_layer_input_con2)
+# print('shape = ' + str(next_layer_input_con2.shape))
 
 
 
