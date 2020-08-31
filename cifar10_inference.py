@@ -62,20 +62,19 @@ def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_
     # print('Vmav = ' + str(vmav))
     #### ADC ####
     yout = int(give_vmav_get_yout(vmav*1000, yout_param))
-    # print('Digital Output = ' + str(yout))
+    print('Digital Output = ' + str(yout))
     return yout
 
 
-def conv(X_test, weight_data, multipler):
+def conv(X_test_data, weight_data, multipler):
     ### Parameters ###
-    channel = X_test.shape[1]
-    print("channel == ", channel)
+    channel = X_test_data.shape[1]
     filter_size = 3
     dividor = 27
     # next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
-    next_layer_xy = 32
-    number_of_img = X_test.shape[0]
-    number_of_filter = 32
+    next_layer_xy = 2 # 32
+    number_of_img = 1 # X_test.shape[0]
+    number_of_filter = 1 # 32
 
     # print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
     Va_fit_param, Va_bar_fit_param = dac_param()
@@ -96,83 +95,49 @@ def conv(X_test, weight_data, multipler):
                         for this_row in range(filter_size):
                             for this_col in range(filter_size):
                                 # first index = which image
-                                # print('this_col = ' + str(this_col) + '  this_row = ' + str(
-                                #     this_row) + '  this_channel = ' + str(this_channel))
-                                # print('index === ' + str(this_col + 3 * this_row + 9 * this_channel))
-                                # print('filter ---- ', this_filter)
-                                partial_sum_single = partial_sum_single + cim_conv(
-                                    X_test[this_img][this_channel][this_row + this_many_y][this_col + this_many_x],
-                                    weight_data[this_filter][this_col + 3*this_row + 9*this_channel],
-                                    Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param)
+                                partial_sum_single = partial_sum_single \
+                                                     + X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x] \
+                                                     * weight_data[this_filter][this_col + 3*this_row + 9*this_channel]
+
+                                # partial_sum_single = partial_sum_single + cim_conv(
+                                #     X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x],
+                                #     weight_data[this_filter][this_col + 3*this_row + 9*this_channel],
+                                #     Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param)
 
                                 # print('this_col = ' + str(this_col) + '  this_row = ' + str(this_row) + '  this_channel = ' + str(this_channel))
                                 # print('index === ' + str(this_col + 3*this_row + 9*this_channel))
                                 # print('weight data ====== ' + str(weight_data[this_filter][this_col + 3*this_row + 9*this_channel]))
 
                     # convert 27 into one average result
+                    print('partial sum === ', partial_sum_single)
 
                     partial_sum_avg = partial_sum_single/(channel*filter_size*filter_size)
+                    print('partial sum avg === ', partial_sum_avg)
                     # print('partial sum ============ ', partial_sum_single)
                     # print('partial sum avg ==== ', partial_sum_avg)
-                    if partial_sum_avg<127: # RELU
-                        partial_sum_avg = 127
-                    partial_sum_avg = (partial_sum_avg- 127)*multipler # amplify
+                    # if partial_sum_avg<127: # RELU
+                    #     partial_sum_avg = 127
+                    # partial_sum_avg = (partial_sum_avg- 127)*multipler # amplify
                     next_layer_input[this_img][this_filter][this_many_y][this_many_x] = partial_sum_avg
 
                     # print('index = ' + str(this_many_y + next_layer_xy*this_filter))
 
-    def conv2(X_test, weight_data):
-        ### Parameters ###
-        channel = X_test.shape[1]
-        filter_size = 3
-        dividor = 27
-        # next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
-        next_layer_xy = 32
-        number_of_img = 1  # X_test.shape[0]
-        number_of_filter = 32
-
-        # print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
-        Va_fit_param, Va_bar_fit_param = dac_param()
-        Va_vs_Vmav_param, Va_bar_vs_Vmav_param = mav_transfer()
-        yout_param = adc_param()
-
-        next_layer_input = np.zeros(shape=(number_of_img, number_of_filter, next_layer_xy, next_layer_xy))
-
-        # yout = cim_conv(180, 70)
-        for this_img in range(number_of_img):
-            for this_filter in range(number_of_filter):
-                for this_many_y in range(next_layer_xy):  # loop thru image y axis
-                    # next_layer_input.append([])
-                    for this_many_x in range(next_layer_xy):  # loop thru image x axis
-                        partial_sum_single = 0
-                        for this_channel in range(channel):  # internal loop within filter 3*3*3
-                            for this_row in range(filter_size):
-                                for this_col in range(filter_size):
-                                    # first index = which image
-                                    partial_sum_single = partial_sum_single + cim_conv(
-                                        X_test[this_img][this_channel][this_row + this_many_y][this_col + this_many_x],
-                                        weight_data[this_filter][this_col + 3 * this_row + 9 * this_channel],
-                                        Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param,
-                                        yout_param)
-
-                                    # print('this_col = ' + str(this_col) + '  this_row = ' + str(this_row) + '  this_channel = ' + str(this_channel))
-                                    # print('index === ' + str(this_col + 3*this_row + 9*this_channel))
-                                    # print('weight data ====== ' + str(weight_data[this_filter][this_col + 3*this_row + 9*this_channel]))
-
-                        # convert 27 into one average result
-                        partial_sum_avg = partial_sum_single / dividor
-                        if partial_sum_avg < 128:  # RELU
-                            partial_sum_avg = 127
-                        partial_sum_avg = (partial_sum_avg - 127) * 32  # amplify
-                        next_layer_input[this_img][this_filter][this_many_y][this_many_x] = partial_sum_avg
-                        # print('index = ' + str(this_many_y + next_layer_xy*this_filter))
     return next_layer_input
 
-
 # testing
-# next_layer_input = conv(X_test_padded, weight_data_conv1, 32)
-# print(next_layer_input)
-# print('shape = ' + str(next_layer_input.shape))
+next_layer_input = conv(X_test_padded, weight_data_conv1, 1)
+
+# with open('partial_sum.txt','w') as file:
+#     for channel in next_layer_input:
+#         for filter in channel:
+#             for row in filter:
+#                 for data in row:
+#                     file.write('%d,'% data)
+#             file.write('\n')
+# file.close()
+
+print(next_layer_input)
+print('shape = ' + str(next_layer_input.shape))
 #
 # # padding for conv2
 # next_layer_input_padding = np.zeros(shape=(next_layer_input.shape[0], next_layer_input.shape[1], next_layer_input.shape[2]+2, next_layer_input.shape[3]+2))
