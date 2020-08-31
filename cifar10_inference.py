@@ -47,10 +47,11 @@ weight_file.close()
 # weight_data1 = np.random.randint(-126,126,size=(2,27))
 # print(weight_data1)
 
-
+output_log_file = open('output_log.txt', 'w')
 def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param):
     #### DAC ####
     # Va / Va_bar generation
+    output_log_file.write('Xin = ' + str(Xin) + 'Win = ' + str(Win) + '\n')
     # print('Xin = ' + str(Xin))
     va, va_bar = give_an_input_get_analog_output_dac(Xin, Va_fit_param, Va_bar_fit_param)
     # print('Va = ' + str(va))
@@ -62,6 +63,7 @@ def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_
     # print('Vmav = ' + str(vmav))
     #### ADC ####
     yout = int(give_vmav_get_yout(vmav*1000, yout_param))
+    output_log_file.write('Digital Output = ' + str(yout) + '\n')
     # print('Digital Output = ' + str(yout))
     return yout
 
@@ -72,9 +74,9 @@ def conv(X_test_data, weight_data, multipler):
     filter_size = 3
     dividor = 27
     # next_layer_xy = X_test.shape[0][1]-weight_data.shape[0]+1
-    next_layer_xy = 32 #2
-    number_of_img = X_test_data.shape[0] #1
-    number_of_filter = 32 #1
+    next_layer_xy = 32
+    number_of_img = 1 #X_test_data.shape[0]
+    number_of_filter = 32
 
     # print('channel = ' + str(channel) + 'filter_size = ' + str(filter_size))
     Va_fit_param, Va_bar_fit_param = dac_param()
@@ -114,10 +116,10 @@ def conv(X_test_data, weight_data, multipler):
                     partial_sum_avg = partial_sum_single/(channel*filter_size*filter_size)
                     # print('partial sum avg === ', partial_sum_avg)
                     # print('partial sum ============ ', partial_sum_single)
-                    # print('partial sum avg ==== ', partial_sum_avg)
-                    # if partial_sum_avg<127: # RELU
-                    #     partial_sum_avg = 127
-                    # partial_sum_avg = (partial_sum_avg- 127)*multipler # amplify
+                    output_log_file.write('partial sum avg ==== ' + str(partial_sum_avg) + 'partial sum ============ ' +  str(partial_sum_single) + '\n')
+                    if partial_sum_avg<128: # RELU
+                        partial_sum_avg = 128
+                    partial_sum_avg = (partial_sum_avg- 128)*multipler # amplify
                     next_layer_input[this_img][this_filter][this_many_y][this_many_x] = partial_sum_avg
 
                     # print('index = ' + str(this_many_y + next_layer_xy*this_filter))
@@ -125,7 +127,7 @@ def conv(X_test_data, weight_data, multipler):
     return next_layer_input
 
 # testing
-# next_layer_input = conv(X_test_padded, weight_data_conv1, 1)
+next_layer_input = conv(X_test_padded, weight_data_conv1, 24)
 
 # with open('partial_sum.txt','w') as file:
 #     for channel in next_layer_input:
@@ -136,21 +138,23 @@ def conv(X_test_data, weight_data, multipler):
 #             file.write('\n')
 # file.close()
 
-# print(next_layer_input)
-# print('shape = ' + str(next_layer_input.shape))
+print(next_layer_input)
+print('shape = ' + str(next_layer_input.shape))
+print('max = ' + str(np.amax(next_layer_input)))
 #
 # # padding for conv2
-# next_layer_input_padding = np.zeros(shape=(next_layer_input.shape[0], next_layer_input.shape[1], next_layer_input.shape[2]+2, next_layer_input.shape[3]+2))
-# next_layer_input_padding[:next_layer_input.shape[0], :next_layer_input.shape[1], 1:next_layer_input.shape[2]+1, 1:next_layer_input.shape[3]+1] = next_layer_input
-#
-# # print(next_layer_input_padding)
-# print(next_layer_input_padding.shape)
-#
-# next_layer_input_con2 = conv(next_layer_input_padding, weight_data_conv2, 64)
-# print(next_layer_input_con2)
-# print('shape = ' + str(next_layer_input_con2.shape))
+next_layer_input_padding = np.zeros(shape=(next_layer_input.shape[0], next_layer_input.shape[1], next_layer_input.shape[2]+2, next_layer_input.shape[3]+2))
+next_layer_input_padding[:next_layer_input.shape[0], :next_layer_input.shape[1], 1:next_layer_input.shape[2]+1, 1:next_layer_input.shape[3]+1] = next_layer_input
 
+# print(next_layer_input_padding)
+print(next_layer_input_padding.shape)
+output_log_file.write('-------------- CONV2 ---------------'+ '\n')
+next_layer_input_con2 = conv(next_layer_input_padding, weight_data_conv2, 128)
+print(next_layer_input_con2)
+print('conv2 shape = ' + str(next_layer_input_con2.shape))
+print('conv2 max = ' + str(np.amax(next_layer_input_con2)))
 
+output_log_file.close()
 
 
 
