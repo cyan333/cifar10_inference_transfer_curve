@@ -66,7 +66,7 @@ def give_an_input_get_analog_output_dac(x, va_fit_param, va_bar_fit_param):
         va = va_fit_param[1] * x + va_fit_param[0]
     else:
         va = 1028
-    va_bar = va_bar_fit_param[1] * x + va_bar_fit_param[0]
+    va_bar = -2.5 * x + va_bar_fit_param[0]
     return va, va_bar
 
 # testing

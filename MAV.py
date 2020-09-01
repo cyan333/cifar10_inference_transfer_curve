@@ -116,9 +116,9 @@ def mav_transfer():
 
 def give_weight_get_vmav(weight_in, va, va_bar, Va_vs_Vmav_param, Va_bar_vs_Vmav_param):
     if weight_in > 0: # positive - use va
-        vmav = Va_vs_Vmav_param[weight_in][0][1] * va + Va_vs_Vmav_param[weight_in][0][0]
+        vmav = Va_vs_Vmav_param[weight_in][0][1] * 1.05* va + Va_vs_Vmav_param[weight_in][0][0]
     else: # negative - use va-bar
-        vmav = Va_bar_vs_Vmav_param[abs(weight_in)][0][1] * va_bar + Va_bar_vs_Vmav_param[abs(weight_in)][0][0]
+        vmav = Va_bar_vs_Vmav_param[abs(weight_in)][0][1] * 1.05* va_bar + Va_bar_vs_Vmav_param[abs(weight_in)][0][0]
     return vmav
 
 # Testing

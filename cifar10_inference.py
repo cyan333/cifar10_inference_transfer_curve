@@ -47,11 +47,11 @@ weight_file.close()
 # weight_data1 = np.random.randint(-126,126,size=(2,27))
 # print(weight_data1)
 
-# output_log_file = open('output_log.txt', 'w')
+output_log_file = open('output_log.txt', 'w')
 def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param):
     #### DAC ####
     # Va / Va_bar generation
-    # output_log_file.write('Xin = ' + str(Xin) + 'Win = ' + str(Win) + '\n')
+    output_log_file.write('Xin = ' + str(Xin) + '  ------   Win = ' + str(Win) + '\n')
     # print('Xin = ' + str(Xin))
     va, va_bar = give_an_input_get_analog_output_dac(Xin, Va_fit_param, Va_bar_fit_param)
     # print('Va = ' + str(va))
@@ -63,7 +63,7 @@ def cim_conv(Xin, Win, Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_
     # print('Vmav = ' + str(vmav))
     #### ADC ####
     yout = int(give_vmav_get_yout(vmav*1000, yout_param))
-    # output_log_file.write('Digital Output = ' + str(yout) + '\n')
+    output_log_file.write('Digital Output = ' + str(yout) + '\n')
     # print('Digital Output = ' + str(yout))
     return yout
 
@@ -96,14 +96,30 @@ def conv(X_test_data, weight_data, multipler):
                         for this_row in range(filter_size):
                             for this_col in range(filter_size):
                                 # first index = which image
+                                output_log_file.write(
+                                    "Xin ---> ({},{},{},{}) --> {} \n".format(this_img, this_channel,
+                                                                           this_row + this_many_y,
+                                                                           this_row + this_many_y,
+                                                                           X_test_data[this_img][this_channel][
+                                                                               this_row + this_many_y][
+                                                                               this_col + this_many_x]))
+                                output_log_file.write("Weight ---> ({},{}) --> {} \n".format
+                                                      (this_filter,
+                                                       this_col + 3*this_row + 9*this_channel,
+                                                       weight_data[this_filter][this_col + 3*this_row + 9*this_channel]
+                                                       ))
                                 # partial_sum_single = partial_sum_single \
-                                #                      + X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x] \
-                                #                      * weight_data[this_filter][this_col + 3*this_row + 9*this_channel]
+                                #                      + (X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x] \
+                                #                      * weight_data[this_filter][this_col + 3*this_row + 9*this_channel])
 
-                                partial_sum_single = partial_sum_single + cim_conv(
+                                conv_data = cim_conv(
                                     X_test_data[this_img][this_channel][this_row + this_many_y][this_col + this_many_x],
                                     weight_data[this_filter][this_col + 3*this_row + 9*this_channel],
                                     Va_fit_param, Va_bar_fit_param, Va_vs_Vmav_param, Va_bar_vs_Vmav_param, yout_param)
+                                conv_data = (conv_data - 128)
+                                partial_sum_single = partial_sum_single + conv_data
+                                output_log_file.write('after -128 partial = ' + str(conv_data) + '\n')
+                                output_log_file.write('\n')
 
                                 # print('this_col = ' + str(this_col) + '  this_row = ' + str(this_row) + '  this_channel = ' + str(this_channel))
                                 # print('index === ' + str(this_col + 3*this_row + 9*this_channel))
@@ -111,18 +127,23 @@ def conv(X_test_data, weight_data, multipler):
 
                     # convert 27 into one average result
                     # print('partial sum === ', partial_sum_single)
-
-                    partial_sum_avg = partial_sum_single/(channel*filter_size*filter_size)
+                    # partial_sum_avg = partial_sum_single/(channel*filter_size*filter_size)
                     # print('partial sum avg === ', partial_sum_avg)
                     # print('partial sum ============ ', partial_sum_single)
                     # output_log_file.write('partial sum avg ==== ' + str(partial_sum_avg) + 'partial sum ============ ' +  str(partial_sum_single) + '\n')
-                    if partial_sum_avg<128: # RELU
-                        partial_sum_avg = 128
-                    partial_sum_avg = (partial_sum_avg- 128)*multipler # amplify
-                    next_layer_input[this_img][this_filter][this_many_y][this_many_x] = partial_sum_avg
+                    # if partial_sum_avg<128: # RELU
+                    #     partial_sum_avg = 128
+                    # partial_sum_avg = (partial_sum_avg- 128)*multipler # amplify
+                    output_log_file.write(
+                        "partial sum ({},{},{},{}) --> before {} after {} \n".format(this_img, this_filter,
+                                                                                     this_many_y,
+                                                                                     this_many_x,
+                                                                                     partial_sum_single,
+                                                                                     (partial_sum_single - 40) * multipler))
+                    next_layer_input[this_img][this_filter][this_many_y][this_many_x] = (partial_sum_single-40) * multipler
 
                     # print('index = ' + str(this_many_y + next_layer_xy*this_filter))
-
+    output_log_file.close()
     return next_layer_input
 
 # testing
@@ -144,7 +165,6 @@ def conv(X_test_data, weight_data, multipler):
 # print('conv2 shape = ' + str(next_layer_input_con2.shape))
 # print('conv2 max = ' + str(np.amax(next_layer_input_con2)))
 #
-# output_log_file.close()
 
 
 
