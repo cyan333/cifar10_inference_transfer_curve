@@ -97,8 +97,8 @@ X_test_padded[:X_test.shape[0], :X_test.shape[1], 1:X_test.shape[2]+1, 1:X_test.
 # print(X_test_padded[:1].shape, 'test samples')
 # print(Y_test[:1].shape, 'test samples values')
 
-X_test_small = X_test_padded[:1000]
-Y_test_small = Y_test[:1000]
+X_test_small = X_test_padded[:5000]
+Y_test_small = Y_test[:5000]
 
 # Weight
 weight_data_conv1 = []
